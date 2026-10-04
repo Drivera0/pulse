@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="apple-mobile-web-app-title" content="Pulse deck" />
+<meta name="theme-color" content="#000000" />
+<title>Pulse deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; overscroll-behavior: none; touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  body { font-family: Inter, Arial, sans-serif; color: #f3f2ee; }
+  /* The stage is the whole screen; the 1920×1080 slide is scaled to fit and centred. */
+  #stage { position: fixed; inset: 0; }
+  .slide { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: 0 0; display: none; }
+  .slide.on { display: block; }
+  .slide > section { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+  .slide h1, .slide h2, .slide h3, .slide p, .slide ul { margin: 0; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px calc(14px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left)); display: flex; align-items: center; gap: 12px; font-size: 15px; color: #c8ccd1; background: linear-gradient(transparent, rgba(0,0,0,.72)); transition: opacity .3s; }
+  #bar.hide { opacity: 0; pointer-events: none; }
+  #bar button { font: inherit; color: #f3f2ee; background: rgba(255,255,255,.14); border: 0; border-radius: 10px; padding: 10px 16px; min-width: 48px; min-height: 44px; }
+  #bar button:active { background: rgba(255,255,255,.3); }
+  #count { font-variant-numeric: tabular-nums; }
+  #dots { display: flex; gap: 6px; flex: 1; justify-content: center; }
+  #dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.28); }
+  #dots i.on { background: #e5484d; }
+  #notes { position: fixed; left: 0; right: 0; bottom: 0; max-height: 46%; overflow: auto; padding: 18px calc(22px + env(safe-area-inset-right)) calc(74px + env(safe-area-inset-bottom)) calc(22px + env(safe-area-inset-left)); background: rgba(12,13,15,.94); font-size: 20px; line-height: 1.5; display: none; -webkit-user-select: text; user-select: text; }
+  #notes.on { display: block; }
+  #notes b { display: block; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #9aa0a6; margin-bottom: 6px; }
+  #grid { position: fixed; inset: 0; overflow: auto; -webkit-overflow-scrolling: touch; background: #0b0c0e; padding: calc(16px + env(safe-area-inset-top)) 16px 90px; display: none; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; align-content: start; touch-action: pan-y; }
+  #grid.on { display: grid; }
+  #grid .th { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; outline: 2px solid transparent; }
+  #grid .th.cur { outline-color: #e5484d; }
+  #grid .th > div { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; pointer-events: none; }
+  #grid .th > div > section { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+  #grid .th span { position: absolute; left: 8px; bottom: 6px; font-size: 13px; background: rgba(0,0,0,.6); color: #fff; border-radius: 6px; padding: 2px 7px; }
+  #hint { position: fixed; top: calc(14px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); background: rgba(255,255,255,.14); border-radius: 999px; padding: 8px 16px; font-size: 14px; transition: opacity .6s; pointer-events: none; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div id="stage">
+<div class="slide">
+<section id="cover" data-transition="fade" style="background:#101214;color:#F3F2EE;font-family:'Inter', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">StormHacks 2026</p>
+<div style="display:flex;flex-direction:column;gap:32px">
+<h1 style="font-size:200px;font-weight:700;line-height:1;letter-spacing:-6px">Pulse</h1>
+<p style="font-size:48px;line-height:1.25;color:#B9BEC4;width:1300px">Early warning for crowd crushes, using the phones already in the crowd.</p>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:end">
+<p style="font-size:28px;color:#8A9097">Dan Rivera</p>
+<p style="font-size:32px;color:#F3F2EE;background:#191C1F;border:1px solid #2A2E33;border-radius:16px;padding:20px 32px">Scan the QR code or open pulsecrowd.tech</p>
+</div>
+</section>
+</div>
+<div class="slide">
+<section id="problem" data-transition="fade" style="background:#101214;color:#F3F2EE;font-family:'Inter', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">The problem</p>
+<div style="flex:1"></div>
+<p style="font-size:200px;font-weight:700;line-height:1;letter-spacing:-6px;color:#E5484D">159</p>
+<p style="font-size:36px;color:#B9BEC4">lives lost in the Itaewon crowd crush, Seoul, 29 October 2022. 158 people were crushed in one narrow alley.</p>
+<h2 style="font-size:64px;font-weight:600;line-height:1.15;width:1500px">Nobody inside a crush can see it building. Nobody outside can either.</h2>
+</section>
+</div>
+<div class="slide">
+<section id="insight" data-transition="fade" style="background:#F6F5F1;color:#15181B;font-family:'Inter', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">The insight</p><h2 style="font-size:72px;font-weight:600;line-height:1.1;width:1500px">A crush is a push that travels from person to person.</h2>
+<div style="display:flex;gap:64px">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:32px">
+<h3 style="font-size:36px;font-weight:600">Dancing: everyone at once</h3>
+<svg aria-label="Three phone traces peaking at the same moment" viewBox="0 0 640 300" width="640" height="300" xmlns="http://www.w3.org/2000/svg"><path d="M20 75 L60 75 C90 75 100 20 120 20 C140 20 150 75 180 75 L620 75" fill="none" stroke="#3FB27F" stroke-width="6" stroke-linecap="round"/><circle cx="120" cy="20" r="9" fill="#3FB27F"/><path d="M20 170 L60 170 C90 170 100 115 120 115 C140 115 150 170 180 170 L620 170" fill="none" stroke="#3FB27F" stroke-width="6" stroke-linecap="round"/><circle cx="120" cy="115" r="9" fill="#3FB27F"/><path d="M20 265 L60 265 C90 265 100 210 120 210 C140 210 150 265 180 265 L620 265" fill="none" stroke="#3FB27F" stroke-width="6" stroke-linecap="round"/><circle cx="120" cy="210" r="9" fill="#3FB27F"/><path d="M120 5 L120 285" stroke="#15181B" stroke-width="3" stroke-dasharray="10 8" fill="none"/></svg>
+<p style="font-size:28px;color:#4A4F55">Same motion, same moment. Ignored.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:32px">
+<h3 style="font-size:36px;font-weight:600">A push: one after another</h3>
+<svg aria-label="Three phone traces with the same peak arriving later on each" viewBox="0 0 640 300" width="640" height="300" xmlns="http://www.w3.org/2000/svg"><path d="M20 75 L60 75 C90 75 100 20 120 20 C140 20 150 75 180 75 L620 75" fill="none" stroke="#E5484D" stroke-width="6" stroke-linecap="round"/><circle cx="120" cy="20" r="9" fill="#E5484D"/><path d="M20 170 L210 170 C240 170 250 115 270 115 C290 115 300 170 330 170 L620 170" fill="none" stroke="#E5484D" stroke-width="6" stroke-linecap="round"/><circle cx="270" cy="115" r="9" fill="#E5484D"/><path d="M20 265 L360 265 C390 265 400 210 420 210 C440 210 450 265 480 265 L620 265" fill="none" stroke="#E5484D" stroke-width="6" stroke-linecap="round"/><circle cx="420" cy="210" r="9" fill="#E5484D"/><path d="M120 20 L420 210" stroke="#15181B" stroke-width="3" stroke-dasharray="10 8" fill="none"/></svg>
+<p style="font-size:28px;color:#4A4F55">Same motion, a fraction of a second later, person to person.</p>
+</div>
+</div>
+</section>
+</div>
+<div class="slide">
+<section id="how" data-transition="fade" style="background:#F6F5F1;color:#15181B;font-family:'Inter', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">How it works</p><h2 style="font-size:72px;font-weight:600;line-height:1.1">Math detects. AI explains.</h2>
+<div style="display:flex;gap:24px;align-items:stretch">
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:32px"><h3 style="font-size:36px;font-weight:600;color:#15181B">Phones</h3><p style="font-size:26px;line-height:1.4;color:#4A4F55">A web page from one QR code. Ten motion readings a second.</p></div>
+<svg aria-label="then" viewBox="0 0 64 40" width="64" height="40" style="align-self:center" xmlns="http://www.w3.org/2000/svg"><path d="M0 14 H38 V2 L64 20 L38 38 V26 H0 Z" fill="#9AA0A6"/></svg>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:32px"><h3 style="font-size:36px;font-weight:600;color:#15181B">One Go server</h3><p style="font-size:26px;line-height:1.4;color:#4A4F55">Clock sync, neighbour comparison every 250 ms, density, position estimate.</p></div>
+<svg aria-label="then" viewBox="0 0 64 40" width="64" height="40" style="align-self:center" xmlns="http://www.w3.org/2000/svg"><path d="M0 14 H38 V2 L64 20 L38 38 V26 H0 Z" fill="#9AA0A6"/></svg>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:32px"><h3 style="font-size:36px;font-weight:600;color:#15181B">People</h3><p style="font-size:26px;line-height:1.4;color:#4A4F55">Staff: one sentence and one action, read aloud. Sign and zone lights. Each phone: which way to move.</p></div>
+</div>
+<p style="font-size:30px;line-height:1.4;color:#4A4F55;width:1500px">Gemini writes the sentence and reads floor plans. ElevenLabs speaks it. If either is down, the alarm still fires with a template sentence.</p>
+</section>
+</div>
+<div class="slide">
+<section id="phone" data-transition="fade" style="background:#101214;color:#F3F2EE;font-family:'Inter', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">In the crowd</p>
+<div style="display:flex;gap:96px;align-items:center;flex:1">
+<div style="width:420px;height:760px;background:#2A0E10;border:6px solid #3A3F45;border-radius:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;padding:48px">
+<p style="font-size:36px;font-weight:700;color:#E5484D;text-align:center">Crowd danger near you</p>
+<svg aria-label="Arrow pointing up and to the right" viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg"><path d="M40 160 L130 70 L130 120 L160 120 L160 40 L80 40 L80 70 L130 70" fill="none" stroke="#F3F2EE" stroke-width="0"/><path d="M48 168 L136 80 V128 H164 V36 H72 V64 H120 L32 152 Z" fill="#F3F2EE"/></svg>
+<p style="font-size:30px;color:#F3F2EE;text-align:center">Move diagonally, not against the push.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-size:120px;font-weight:700;line-height:1">Move this way.</h2>
+<p style="font-size:36px;line-height:1.4;color:#B9BEC4">The steward gets one sentence and one action. The person in the crowd gets a direction: sideways out of a push, toward space, toward an open exit.</p>
+</div>
+</div>
+</section>
+</div>
+<div class="slide">
+<section id="table" data-transition="fade" style="background:#F6F5F1;color:#15181B;font-family:'Inter', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">At this table</p>
+<div style="display:flex;gap:64px;align-items:center;flex:1">
+<div style="display:flex;flex-direction:column;gap:16px;width:760px">
+<p style="font-size:200px;font-weight:700;line-height:1;letter-spacing:-6px;color:#E5484D">~8 s</p>
+<p style="font-size:40px;font-weight:600;line-height:1.2">from the first shove to red, three to five people in a row</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<div style="background:#FFFFFC;border:1px solid #DEDCD5;border-radius:16px;padding:28px"><p style="font-size:30px"><span style="color:#3FB27F">●</span> Jumping, dancing, walking, handling the phone: no warning</p></div>
+<div style="background:#FFFFFC;border:1px solid #DEDCD5;border-radius:16px;padding:28px"><p style="font-size:30px"><span style="color:#F2B33D">●</span> Two people: a push shows yellow, never red</p></div>
+<div style="background:#FFFFFC;border:1px solid #DEDCD5;border-radius:16px;padding:28px"><p style="font-size:30px"><span style="color:#F2B33D">●</span> Pressed together, swaying as one: yellow after about 15 s</p></div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;font-size:24px;color:#6A7076;width:1600px">Synthetic hand-held phones, 10 random rows per case, noise from a real Android. Median 7.8–8.0 s. Today's judges are the first real test.</p>
+</section>
+</div>
+<div class="slide">
+<section id="simcrush" data-transition="fade" style="background:#101214;color:#F3F2EE;font-family:'Inter', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">Simulated, clearly labelled</p><h2 style="font-size:72px;font-weight:600;line-height:1.1;width:1400px">Your phone, inside a simulated crush.</h2><div style="display:flex;gap:32px"><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#191C1F;border:1px solid #2A2E33;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">220 simulated people</h3><p style="font-size:28px;line-height:1.4;color:#B9BEC4">Pack around the judges' real phones. The simulator knows the true pressure on every body; Pulse only sees the phones.</p></div><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#191C1F;border:1px solid #2A2E33;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">9.5–12 s</h3><p style="font-size:28px;line-height:1.4;color:#B9BEC4">Until every real phone in tests turned red with an arrow, labelled "Simulated crowd around you — drill".</p></div><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#191C1F;border:1px solid #2A2E33;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">Four venues</h3><p style="font-size:28px;line-height:1.4;color:#B9BEC4">Concert, classroom, auditorium, stadium gate: people sit, queue, herd, re-route and push when held up.</p></div></div><p style="font-size:28px;line-height:1.4;color:#8A9097">Social Force model; walking speeds match Weidmann's data within about 0.1 m/s from 0.5 to 5 people per m².</p>
+</section>
+</div>
+<div class="slide">
+<section id="holds" data-transition="fade" style="background:#F6F5F1;color:#15181B;font-family:'Inter', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">What holds</p>
+<p style="font-size:180px;font-weight:700;line-height:1;letter-spacing:-5px">0 of 600</p>
+<p style="font-size:44px;font-weight:600">look-alikes went red: dancing, swaying, Mexican waves, marching, bumps, walking past.</p><div style="display:flex;gap:32px"><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:48px;font-weight:600;line-height:1.2">80 of 80</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">pushes still found with realistic phone GPS (5 m error), by shared motion.</p></div><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:48px;font-weight:600;line-height:1.2">17.8 s</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">median warning before danger when a crowd builds at the stage, exact positions.</p></div></div><p style="position:absolute;left:128px;bottom:64px;font-size:24px;color:#6A7076;width:1600px">Simulator, 20 random crowds per scenario (EVAL.md, seeds 1–20). Thresholds were tuned on the same simulator.</p>
+</section>
+</div>
+<div class="slide">
+<section id="breaks" data-transition="fade" style="background:#101214;color:#F3F2EE;font-family:'Inter', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">What breaks</p><h2 style="font-size:72px;font-weight:600;line-height:1.1;width:1500px">You can't see a 2-metre knot through 5 metres of GPS error.</h2><div style="display:flex;flex-direction:column;gap:32px;width:1400px"><div style="display:flex;flex-direction:column;gap:12px"><p style="font-size:30px">Pushes caught, realistic GPS <b>80 / 80</b></p><div style="height:40px;background:#2A2E33;border-radius:12px"><div style="width:100%;height:40px;background:#3FB27F;border-radius:12px"></div></div></div><div style="display:flex;flex-direction:column;gap:12px"><p style="font-size:30px">Packing caught red, realistic GPS <b>0 / 80 (59 yellow)</b></p><div style="height:40px;background:#2A2E33;border-radius:12px"><div style="width:1%;height:40px;background:#E5484D;border-radius:12px"></div></div></div><div style="display:flex;flex-direction:column;gap:12px"><p style="font-size:30px">Surges caught with the position estimator <b>58 / 60, ~5 s late</b></p><div style="height:40px;background:#2A2E33;border-radius:12px"><div style="width:97%;height:40px;background:#F2B33D;border-radius:12px"></div></div></div></div><p style="font-size:28px;line-height:1.4;color:#8A9097">Packing needs positions good to about a metre: tap your spot, seats or sections, or Bluetooth ranging in a native app.</p>
+</section>
+</div>
+<div class="slide">
+<section id="event" data-transition="fade" style="background:#F6F5F1;color:#15181B;font-family:'Inter', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">Built to run an event</p><h2 style="font-size:72px;font-weight:600;line-height:1.1">One Go server. 1,000 phones. Nothing dropped.</h2><div style="display:flex;gap:32px"><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">Console</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">Setup checklist, watch areas with rules, alert cards with Acknowledge and Resolve, alert drills, escalation.</p></div><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">Resilient</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">Phones relay for each other over WebRTC. Sign and lights run over USB, no Wi-Fi. Every outside service falls back.</p></div><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">Private</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">A random ID, venue metres and motion numbers. No names, contacts, audio or photos. Raw GPS never stored.</p></div></div><p style="position:absolute;left:128px;bottom:64px;font-size:24px;color:#6A7076;width:1600px">Load test: 1,000 fake phones at 10 readings a second, about 10,000 messages a second, dashboard steady at 10 Hz (loadtest.md).</p>
+</section>
+</div>
+<div class="slide">
+<section id="sponsors" data-transition="fade" style="background:#F6F5F1;color:#15181B;font-family:'Inter', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">Built with</p><h2 style="font-size:72px;font-weight:600;line-height:1.1">What each sponsor does</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:40px;font-weight:600;line-height:1.2">Tiger Data</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">Every motion reading and alert in TimescaleDB hypertables, batched with COPY; a per-zone, per-second continuous aggregate; recorded runs replay from it.</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:40px;font-weight:600;line-height:1.2">Google Gemini</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">Writes each alert as one headline and one action, as structured JSON, and reads uploaded floor plans. Never decides what is dangerous; 5 s timeout, then a template.</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:40px;font-weight:600;line-height:1.2">ElevenLabs</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">Speaks every briefing aloud for stewards who are not watching the screen, and re-voices alerts nobody acknowledged.</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:40px;font-weight:600;line-height:1.2">.Tech domain</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">The short HTTPS address behind the join QR code. Phones need HTTPS for their motion sensors.</p></div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;font-size:24px;color:#6A7076;width:1600px">Every service can be down or missing its key: Pulse still detects and alerts, with local files, template sentences and the browser's voice.</p>
+</section>
+</div>
+<div class="slide">
+<section id="roadmap" data-transition="fade" style="background:#101214;color:#F3F2EE;font-family:'Inter', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">Who pays, and what's next</p><h2 style="font-size:72px;font-weight:600;line-height:1.1">Venue safety teams and ticketing platforms.</h2><div style="display:flex;gap:32px"><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#191C1F;border:1px solid #2A2E33;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">Opt in with the ticket</h3><p style="font-size:28px;line-height:1.4;color:#B9BEC4">Attendees join through the ticketing or wallet app. Nothing to install at the venue.</p></div><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#191C1F;border:1px solid #2A2E33;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">One screen</h3><p style="font-size:28px;line-height:1.4;color:#B9BEC4">The safety team watches one console; boards are optional.</p></div><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#191C1F;border:1px solid #2A2E33;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">Native next</h3><p style="font-size:28px;line-height:1.4;color:#B9BEC4">Screen-off streaming and Bluetooth anchors, as the Android app already shows.</p></div></div><p style="font-size:32px;line-height:1.4;color:#B9BEC4">Next: a pilot with one venue, recording real crowds with consent, thresholds frozen before the event.</p>
+</section>
+</div>
+<div class="slide">
+<section id="why" data-transition="fade" style="background:#F6F5F1;color:#15181B;font-family:'Inter', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#E5484D">Backup</p><h2 style="font-size:72px;font-weight:600;line-height:1.1">Every alert shows its evidence.</h2><div style="display:flex;gap:32px"><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">Two traces</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">The two neighbouring phones' sideways motion over the last 6 s.</p></div><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">The delay</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">The correlation curve, its peak and the lag between them.</p></div><div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFFFC;border:1px solid #DEDCD5;border-radius:20px;padding:40px"><h3 style="font-size:36px;font-weight:600;line-height:1.2">The checks</h3><p style="font-size:28px;line-height:1.4;color:#4A4F55">Both moving, strong match, wave-like lag, not vertical, a chain of three: each ticked or crossed.</p></div></div>
+</section>
+</div>
+</div>
+<div id="notes"><b>Speaker notes</b><span id="noteText"></span></div>
+<div id="grid"></div>
+<div id="bar">
+  <button id="prev" aria-label="Previous slide">‹</button>
+  <button id="next" aria-label="Next slide">›</button>
+  <div id="dots"></div>
+  <span id="count"></span>
+  <button id="bNotes">Notes</button>
+  <button id="bGrid">All</button>
+</div>
+<div id="hint">Swipe or tap the sides · tap the middle for controls</div>
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  const notes = ["\"Scan this while I talk. No app.\" Let the first phones join while slide 2 is up.", "Official toll 159: 158 people died in the alley and one teenage survivor died by suicide days later (Korea Herald; Inquirer/AFP). Optional: add your own moment in two sentences.", "Pulse compares each phone with its neighbours. The same motion a fraction of a second later, passed through three people in a row: that's a push. The same motion at the same moment: that's a dance, and it's ignored.", "The alarm is signal processing: cross-correlation between neighbours and density from clustering. Every outside service can fail and the alarm still fires.", "Never against the push. The arrow comes from the density around the phone and the direction of the push. Swap in a real screenshot of a judge's phone if you have one.", "A shove passed down the row every 3 s goes red in a median 7.8 to 8.0 s. Swap this slide's right side for a photo of the table if you have one.", "You can't make a crush at a table, so the real phones stand in a simulated one. Say clearly that this part is simulated.", "Exact, realistic and harsh phones: none of the look-alikes raised a red.", "Say this before a judge asks. A pinned crowd barely moves, so a quiet crush has no motion signature. (EVAL.md, LOCATE.md)", "Generator ran on the same machine as the server.", "Details per sponsor are in docs/QA.md, 'What each sponsor does'. Claim the .tech domain before presenting, or say it's the plan.", "Next: record real crowds with consent and replay them through the same tests with thresholds frozen beforehand. Honest limits: a web page only streams while it's open; real-phone testing so far is one Android plus today.", "Use when a judge asks how the detector decides, or if the live 'Why did it fire?' panel can't be shown. Replace the cards with a screenshot of the panel if you have one."];
+  const $ = (id) => document.getElementById(id);
+  const bar = $('bar'), grid = $('grid'), notesEl = $('notes'), dots = $('dots');
+  let cur = 0, hideTimer = 0;
+
+  // Scale the 1920×1080 slide to fit the screen in either orientation.
+  function fit() {
+    const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+    for (const s of slides) s.style.transform = `scale(${k}) translate(-50%, -50%)`;
+    for (const t of grid.querySelectorAll('.th')) t.firstElementChild.style.transform = `scale(${t.clientWidth / 1920})`;
+  }
+  function show(i) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, n) => s.classList.toggle('on', n === cur));
+    [...dots.children].forEach((d, n) => d.classList.toggle('on', n === cur));
+    $('count').textContent = `${cur + 1} / ${slides.length}`;
+    $('noteText').textContent = notes[cur] || 'No notes for this slide.';
+    try { history.replaceState(null, '', '#' + (cur + 1)); } catch {}
+  }
+  function wake() {
+    bar.classList.remove('hide');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      if (!notesEl.classList.contains('on') && !grid.classList.contains('on')) bar.classList.add('hide');
+    }, 3500);
+  }
+  function toggleGrid(on) {
+    grid.classList.toggle('on', on);
+    if (on) {
+      [...grid.children].forEach((t, n) => t.classList.toggle('cur', n === cur));
+      fit();
+      if (grid.children[cur]) grid.children[cur].scrollIntoView({ block: 'center' });
+    }
+    wake();
+  }
+
+  slides.forEach((s, n) => {
+    dots.append(document.createElement('i'));
+    const t = document.createElement('div');
+    t.className = 'th';
+    const inner = document.createElement('div');
+    inner.innerHTML = s.innerHTML;
+    const tag = document.createElement('span');
+    tag.textContent = n + 1;
+    t.append(inner, tag);
+    t.addEventListener('click', () => { show(n); toggleGrid(false); });
+    grid.append(t);
+  });
+
+  $('prev').onclick = () => { show(cur - 1); wake(); };
+  $('next').onclick = () => { show(cur + 1); wake(); };
+  $('bNotes').onclick = () => { notesEl.classList.toggle('on'); wake(); };
+  $('bGrid').onclick = () => toggleGrid(!grid.classList.contains('on'));
+
+  // Touch: swipe left/right to move; tap the left or right third to move, the middle for the controls.
+  let x0 = 0, y0 = 0, t0 = 0;
+  const stage = $('stage');
+  stage.addEventListener('pointerdown', (e) => { x0 = e.clientX; y0 = e.clientY; t0 = Date.now(); });
+  stage.addEventListener('pointerup', (e) => {
+    const dx = e.clientX - x0, dy = e.clientY - y0;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { show(cur + (dx < 0 ? 1 : -1)); return; }
+    if (Math.abs(dx) > 12 || Math.abs(dy) > 12 || Date.now() - t0 > 600) return;
+    const f = e.clientX / innerWidth;
+    if (f < 0.3) show(cur - 1);
+    else if (f > 0.7) show(cur + 1);
+    else if (bar.classList.contains('hide')) wake();
+    else bar.classList.add('hide');
+  });
+  addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) show(cur + 1);
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) show(cur - 1);
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === 'n') notesEl.classList.toggle('on');
+    else if (e.key === 'g') toggleGrid(!grid.classList.contains('on'));
+    else if (e.key === 'Escape') toggleGrid(false);
+    else return;
+    e.preventDefault();
+  });
+  addEventListener('resize', fit);
+  addEventListener('orientationchange', () => setTimeout(fit, 250));
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+  wake();
+  setTimeout(() => { $('hint').style.opacity = '0'; }, 4000);
+  // Keep the iPad awake while the deck is open, where the browser allows it.
+  const keepAwake = () => { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); };
+  keepAwake();
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
+</script>
+</body>
+</html>

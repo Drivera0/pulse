@@ -66,6 +66,8 @@ Math detects; AI explains. Gemini never decides whether a zone is in danger.
 
 ## How it works
 
+![Pulse architecture: phones and simulators stream to one Go server, whose detector drives the dashboard, storage, briefings and hardware](docs/img/architecture.png)
+
 ```
  phones (TS page)  ──ws /ws/phone──►  Go server  ──ws /ws/dash──►  dashboard (TS, SVG)
                                        │  ├─ clock sync per phone (NTP-style, best of 8 pings)

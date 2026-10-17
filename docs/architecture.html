@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse: system architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #2d3142; --color-ink: #f5f5f5; --color-muted: #bfc0c0; }
+    body { font-family: 'Geist', system-ui, sans-serif; background: var(--color-paper); color: var(--color-ink);
+           min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.66rem; font-weight: 500;
+               letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: 'Instrument Serif', serif; font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400;
+         letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    .scroll { overflow-x: auto; }
+    svg { width: 100%; min-width: 1000px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Pulse</p>
+    <h1>Pulse: system architecture</h1>
+    <div class="scroll">
+<svg viewBox="0 116 1000 444" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pulse-architecture-title pulse-architecture-desc">
+<title id="pulse-architecture-title">Pulse: system architecture</title>
+<desc id="pulse-architecture-desc">Phones and simulators stream motion over WebSockets to one Go server, whose detector scores zones and drives the dashboard, storage, briefings and hardware signs.</desc>
+<defs>
+  <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
+  <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f08a59"/></marker>
+  <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#739fdf"/></marker>
+</defs>
+<rect x="0" y="116" width="1000" height="444" fill="#2d3142"/>
+<!-- Zones -->
+<rect x="256" y="368" width="680" height="112" rx="8" fill="rgba(245,245,245,0.03)" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
+<rect x="672" y="372" width="128" height="12" rx="2" fill="#2d3142"/>
+<text x="736" y="381" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">OPTIONAL · FAILS SOFT</text>
+<!-- Arrows first (behind boxes) -->
+<line x1="184" y1="176" x2="272" y2="176" stroke="#739fdf" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<path d="M 272,204 H 184" fill="none" stroke="#bfc0c0" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+<line x1="184" y1="320" x2="272" y2="320" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="432" y1="256" x2="496" y2="256" stroke="#f08a59" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+<line x1="672" y1="256" x2="760" y2="256" stroke="#739fdf" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<line x1="352" y1="336" x2="352" y2="400" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="584" y1="288" x2="584" y2="400" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 636,288 V 336 Q 636,344 644,344 H 840 Q 848,344 848,352 V 400" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+<!-- Arrow labels -->
+<rect x="198" y="158" width="60" height="12" rx="2" fill="#2d3142"/>
+<text x="228" y="167" fill="#739fdf" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">/WS/PHONE</text>
+<rect x="200" y="214" width="56" height="12" rx="2" fill="#2d3142"/>
+<text x="228" y="223" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GUIDANCE</text>
+<rect x="192" y="302" width="72" height="12" rx="2" fill="#2d3142"/>
+<text x="228" y="311" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SAME SOCKET</text>
+<rect x="442" y="238" width="44" height="12" rx="2" fill="#2d3142"/>
+<text x="464" y="247" fill="#f08a59" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">250 MS</text>
+<rect x="688" y="238" width="56" height="12" rx="2" fill="#2d3142"/>
+<text x="716" y="247" fill="#739fdf" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">/WS/DASH</text>
+<rect x="288" y="352" width="56" height="12" rx="2" fill="#2d3142"/>
+<text x="316" y="361" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">READINGS</text>
+<rect x="538" y="336" width="36" height="12" rx="2" fill="#2d3142"/>
+<text x="556" y="345" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ALERT</text>
+<rect x="706" y="324" width="72" height="12" rx="2" fill="#2d3142"/>
+<text x="742" y="333" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ALERT LEVEL</text>
+<!-- Node: Phones -->
+<rect x="40" y="156" width="144" height="64" rx="6" fill="#2d3142"/>
+<rect x="40" y="156" width="144" height="64" rx="6" fill="rgba(191,192,192,0.10)" stroke="#949eb2" stroke-width="1"/>
+<rect x="48" y="164" width="24" height="12" rx="2" fill="transparent" stroke="rgba(142,140,131,0.40)" stroke-width="0.8"/>
+<text x="60" y="173" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">IN</text>
+<text x="112" y="188" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Phones</text>
+<text x="112" y="204" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">web page · WebRTC mesh</text>
+<!-- Node: Simulators -->
+<rect x="40" y="288" width="144" height="64" rx="6" fill="#2d3142"/>
+<rect x="40" y="288" width="144" height="64" rx="6" fill="rgba(191,192,192,0.10)" stroke="#949eb2" stroke-width="1"/>
+<rect x="48" y="296" width="28" height="12" rx="2" fill="transparent" stroke="rgba(142,140,131,0.40)" stroke-width="0.8"/>
+<text x="62" y="305" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SIM</text>
+<text x="112" y="320" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Simulators</text>
+<text x="112" y="336" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">scripted · crowd model</text>
+<!-- Node: Go server -->
+<rect x="272" y="160" width="160" height="176" rx="6" fill="#2d3142"/>
+<rect x="272" y="160" width="160" height="176" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+<rect x="280" y="168" width="24" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.40)" stroke-width="0.8"/>
+<text x="292" y="177" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GO</text>
+<text x="352" y="228" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Go server</text>
+<text x="352" y="244" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">one binary</text>
+<text x="352" y="258" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">hub · clock sync</text>
+<text x="352" y="272" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">HTTP API</text>
+<!-- Node: Detector -->
+<rect x="496" y="224" width="176" height="64" rx="6" fill="#2d3142"/>
+<rect x="496" y="224" width="176" height="64" rx="6" fill="rgba(240,138,89,0.08)" stroke="#f08a59" stroke-width="1"/>
+<rect x="504" y="232" width="32" height="12" rx="2" fill="transparent" stroke="rgba(240,138,89,0.50)" stroke-width="0.8"/>
+<text x="520" y="241" fill="#f08a59" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CORE</text>
+<text x="584" y="256" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Detector</text>
+<text x="584" y="272" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">detect · crowd · locate</text>
+<!-- Node: Dashboard -->
+<rect x="760" y="224" width="176" height="64" rx="6" fill="#2d3142"/>
+<rect x="760" y="224" width="176" height="64" rx="6" fill="rgba(191,192,192,0.10)" stroke="#949eb2" stroke-width="1"/>
+<rect x="768" y="232" width="24" height="12" rx="2" fill="transparent" stroke="rgba(142,140,131,0.40)" stroke-width="0.8"/>
+<text x="780" y="241" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">UI</text>
+<text x="848" y="256" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Dashboard</text>
+<text x="848" y="272" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">operator console</text>
+<!-- Node: Storage -->
+<rect x="272" y="400" width="160" height="64" rx="6" fill="#2d3142"/>
+<rect x="272" y="400" width="160" height="64" rx="6" fill="rgba(245,245,245,0.05)" stroke="#bfc0c0" stroke-width="1"/>
+<rect x="280" y="408" width="24" height="12" rx="2" fill="transparent" stroke="rgba(191,192,192,0.50)" stroke-width="0.8"/>
+<text x="292" y="417" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DB</text>
+<text x="352" y="432" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Storage</text>
+<text x="352" y="448" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">TimescaleDB or JSONL</text>
+<!-- Node: Briefing -->
+<rect x="496" y="400" width="176" height="64" rx="6" fill="#2d3142"/>
+<rect x="496" y="400" width="176" height="64" rx="6" fill="rgba(245,245,245,0.03)" stroke="rgba(245,245,245,0.30)" stroke-width="1"/>
+<rect x="504" y="408" width="24" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.22)" stroke-width="0.8"/>
+<text x="516" y="417" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">AI</text>
+<text x="584" y="432" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Briefing</text>
+<text x="584" y="448" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Gemini · ElevenLabs</text>
+<!-- Node: Sign & zone lights -->
+<rect x="760" y="400" width="176" height="64" rx="6" fill="#2d3142"/>
+<rect x="760" y="400" width="176" height="64" rx="6" fill="rgba(245,245,245,0.03)" stroke="rgba(245,245,245,0.30)" stroke-width="1"/>
+<rect x="768" y="408" width="24" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.22)" stroke-width="0.8"/>
+<text x="780" y="417" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">HW</text>
+<text x="848" y="432" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Sign & zone lights</text>
+<text x="848" y="448" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Uno R4 · ESP32</text>
+<!-- Legend strip -->
+<line x1="40" y1="504" x2="960" y2="504" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
+<text x="40" y="520" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+<rect x="40" y="536" width="14" height="10" rx="2" fill="rgba(240,138,89,0.08)" stroke="#f08a59" stroke-width="1"/>
+<text x="60" y="544" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Focal</text>
+<rect x="102" y="536" width="14" height="10" rx="2" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+<text x="122" y="544" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Core service</text>
+<rect x="194" y="536" width="14" height="10" rx="2" fill="rgba(245,245,245,0.05)" stroke="#bfc0c0" stroke-width="1"/>
+<text x="214" y="544" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Store</text>
+<rect x="256" y="536" width="14" height="10" rx="2" fill="rgba(191,192,192,0.10)" stroke="#949eb2" stroke-width="1"/>
+<text x="276" y="544" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">User / client</text>
+<rect x="352" y="536" width="14" height="10" rx="2" fill="rgba(245,245,245,0.03)" stroke="rgba(245,245,245,0.30)" stroke-width="1"/>
+<text x="372" y="544" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">External service</text>
+<line x1="461" y1="542" x2="489" y2="542" stroke="#f08a59" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+<text x="497" y="544" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Primary path</text>
+<line x1="569" y1="542" x2="597" y2="542" stroke="#739fdf" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<text x="605" y="544" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Network / API</text>
+<line x1="681" y1="542" x2="709" y2="542" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="717" y="544" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Data / control</text>
+<line x1="797" y1="542" x2="825" y2="542" stroke="#bfc0c0" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+<text x="833" y="544" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Optional / return</text>
+</svg>
+    </div>
+  </div>
+</body>
+</html>
